@@ -7,10 +7,11 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <canvas id="gameCanvas"></canvas>
+  <canvas id="gameCanvas" tabindex="1"></canvas>
   <div id="ui">
-    <div id="score">Score: 0</div>
     <div id="hearts">❤️❤️❤️</div>
+    <div id="coins">🪙 0</div>
+    <div id="score">Score: 0</div>
     <div id="gameOver" class="hidden">
       Game Over<br />
       <button onclick="restart()">Retry</button>
