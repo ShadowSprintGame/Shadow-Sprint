@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Select Your Runner</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .select-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .character {
+      width: 180px;
+      height: auto;
+      margin: 20px;
+      cursor: pointer;
+      border: 4px solid transparent;
+      border-radius: 10px;
+    }
+    .character.selected {
+      border-color: #00ffcc;
+    }
+    .start-button {
+      font-size: 20px;
+      padding: 10px 20px;
+      margin-top: 30px;
+      cursor: pointer;
+      background: #00ffcc;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="select-container">
+    <h1>Choose Your Runner</h1>
+    <img id="runner1" class="character selected" src="runner1.png" alt="Runner 1">
+    <img id="runner2" class="character" src="runner2.png" alt="Runner 2">
+    <br>
+    <button class="start-button" onclick="startGame()">Start Game</button>
+  </div>
+
+  <script>
+    let selected = 'runner1';
+
+    document.getElementById('runner1').addEventListener('click', () => {
+      select('runner1');
+    });
+
+    document.getElementById('runner2').addEventListener('click', () => {
+      select('runner2');
+    });
+
+    function select(id) {
+      selected = id;
+      document.getElementById('runner1').classList.remove('selected');
+      document.getElementById('runner2').classList.remove('selected');
+      document.getElementById(id).classList.add('selected');
+    }
+
+    function startGame() {
+      localStorage.setItem('selectedRunner', selected);
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>
