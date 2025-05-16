@@ -1,52 +1,69 @@
+
+ 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+canvas.width = 400;
+canvas.height = 600;
 
-// Input focus
-canvas.focus();
-
-// Player and game state
-let player = { x: 100, y: canvas.height - 150, w: 50, h: 50, dy: 0, onGround: true };
-let keys = {}, obstacles = [], score = 0, speed = 5;
-let blinkEnergy = 5, blinkActive = false;
+const lanes = [100, 200, 300];
+let player = { lane: 1, y: canvas.height - 80, w: 40, h: 40, jumping: false, dy: 0, ducking: false };
+let obstacles = [];
+let score = 0;
+let speed = 4;
+let keys = {};
+let blink = false;
+let blinkEnergy = 5;
 let health = 6;
 let gameOver = false;
 
-// Constants and DOM refs
-const groundY = canvas.height - 100;
-const scoreUI = document.getElementById("score");
 const heartUI = document.getElementById("hearts");
+const scoreUI = document.getElementById("score");
 const gameOverScreen = document.getElementById("gameOver");
 
-function setupGame() {
-  obstacles = [];
-  for (let i = 1; i <= 10; i++) {
-    obstacles.push({ x: i * 400, y: groundY, w: 40, h: 60 });
-  }
-  gameLoop();
-}
-
 function drawPlayer() {
+  const x = lanes[player.lane] - player.w / 2;
+  const y = player.y;
   ctx.fillStyle = "#0f0";
-  ctx.fillRect(player.x, player.y, player.w, player.h);
+  ctx.fillRect(x, y, player.w, player.h);
 }
 
 function drawObstacles() {
-  ctx.fillStyle = "#f00";
+  ctx.fillStyle = blink ? "#f00" : "#222";
   for (let ob of obstacles) {
-    ob.x -= speed;
-    ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
-    if (isColliding(player, ob)) {
+    ctx.fillRect(lanes[ob.lane] - 20, ob.y, 40, 40);
+    ob.y += speed;
+    if (ob.y > canvas.height) ob.y = -200 - Math.random() * 500;
+    if (ob.lane === player.lane && ob.y + 40 >= player.y && ob.y <= player.y + player.h) {
       takeDamage();
-      ob.x = -999;
+      ob.y = -200;
     }
   }
 }
 
-function isColliding(a, b) {
-  return a.x < b.x + b.w && a.x + a.w > b.x &&
-         a.y < b.y + b.h && a.y + a.h > b.y;
+function updateHearts() {
+  const full = Math.floor(health / 2);
+  const half = health % 2;
+  heartUI.innerText = "❤️".repeat(full) + (half ? "💔" : "");
+}
+
+function handleInput() {
+  if ((keys["a"] || keys["arrowleft"]) && player.lane > 0) {
+    player.lane--;
+    keys["a"] = keys["arrowleft"] = false;
+  }
+  if ((keys["d"] || keys["arrowright"]) && player.lane < 2) {
+    player.lane++;
+    keys["d"] = keys["arrowright"] = false;
+  }
+  if ((keys["w"] || keys["arrowup"]) && !player.jumping) {
+    player.jumping = true;
+    player.dy = -12;
+  }
+  if (keys["s"] || keys["arrowdown"]) {
+    player.h = 20;
+  } else {
+    player.h = 40;
+  }
 }
 
 function takeDamage() {
@@ -59,52 +76,33 @@ function takeDamage() {
   }
 }
 
-function updateHearts() {
-  const full = Math.floor(health / 2);
-  const half = health % 2;
-  heartUI.innerText = "❤️".repeat(full) + (half ? "💔" : "");
-}
-
-function handleInput() {
-  if (keys["w"] || keys["arrowup"]) {
-    if (player.onGround) {
-      player.dy = -20;
-      player.onGround = false;
-    }
-  }
-  if (keys["a"] || keys["arrowleft"]) player.x -= 5;
-  if (keys["d"] || keys["arrowright"]) player.x += 5;
-  if (keys["s"] || keys["arrowdown"]) player.h = 30;
-  else player.h = 50;
-}
-
-function blink() {
-  if (blinkEnergy > 0 && !blinkActive) {
+function blinkEffect() {
+  if (blinkEnergy > 0) {
+    blink = true;
     blinkEnergy--;
-    blinkActive = true;
-    setTimeout(() => blinkActive = false, 500);
+    setTimeout(() => blink = false, 300);
   }
 }
 
 function gameLoop() {
   if (gameOver) return;
 
-  ctx.fillStyle = blinkActive ? "#111" : "#000";
+  ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   handleInput();
-
-  // Gravity
-  player.y += player.dy;
-  if (!player.onGround) player.dy += 1.2;
-  if (player.y + player.h >= groundY) {
-    player.y = groundY - player.h;
-    player.dy = 0;
-    player.onGround = true;
+  if (player.jumping) {
+    player.y += player.dy;
+    player.dy += 0.8;
+    if (player.y >= canvas.height - 80) {
+      player.y = canvas.height - 80;
+      player.jumping = false;
+      player.dy = 0;
+    }
   }
 
-  drawObstacles();
   drawPlayer();
+  drawObstacles();
 
   score += 0.1;
   scoreUI.innerText = "Score: " + Math.floor(score);
@@ -113,35 +111,24 @@ function gameLoop() {
 }
 
 function restart() {
-  player.x = 100;
-  player.y = groundY - 50;
-  player.dy = 0;
+  health = 6;
+  updateHearts();
   score = 0;
   blinkEnergy = 5;
-  health = 6;
   gameOver = false;
-  updateHearts();
   gameOverScreen.classList.add("hidden");
-  setupGame();
+  obstacles = Array.from({ length: 5 }, () => ({ lane: Math.floor(Math.random() * 3), y: -100 * Math.random() }));
+  gameLoop();
 }
 
-// Focus on canvas
-window.onload = () => canvas.focus();
-
-// Keyboard events — attach to canvas
+// Controls
 document.addEventListener("keydown", e => {
-  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
-    e.preventDefault();
-  }
   keys[e.key.toLowerCase()] = true;
-  if (e.key === " " || e.key === "Spacebar") blink();
+  if (e.key === " ") blinkEffect();
 });
+document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
+canvas.addEventListener("click", blinkEffect);
 
-document.addEventListener("keyup", e => {
-  keys[e.key.toLowerCase()] = false;
-});
-
-canvas.addEventListener("click", blink);
-
+// Init
 updateHearts();
-setupGame();
+restart();
