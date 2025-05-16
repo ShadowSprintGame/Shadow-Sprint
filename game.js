@@ -23,14 +23,15 @@ let blinkEnergy = 5;
 let health = 6;
 let gameOver = false;
 
+// Load selected character
+const selected = localStorage.getItem("selectedRunner") || "runner1";
 const playerImg = new Image();
-playerImg.src = "runner.png"; // <- your uploaded image
+playerImg.src = selected + ".png";
 
 const obstacleImg = new Image();
-obstacleImg.src = "obstacle.png"; // <- I’ll give you this
-
+obstacleImg.src = "obstacle.png"; // generated or placeholder
 const bgImg = new Image();
-bgImg.src = "background.jpg"; // <- I’ll give you this
+bgImg.src = "background.jpg"; // generated or placeholder
 
 let bgY = 0;
 
@@ -51,7 +52,7 @@ function drawPlayer() {
   const x = laneX[player.lane] - player.w / 2;
   const y = player.y + Math.sin(player.bounce) * 3;
   ctx.drawImage(playerImg, x, y, player.w, player.h);
-  player.bounce += 0.3; // animation bounce
+  player.bounce += 0.3;
 }
 
 function drawObstacles() {
@@ -147,9 +148,5 @@ function restart() {
 
 document.addEventListener("keydown", e => {
   keys[e.key.toLowerCase()] = true;
-});
-document.addEventListener("keyup", e => {
-  keys[e.key.toLowerCase()] = false;
-});
 
-restart();
+
