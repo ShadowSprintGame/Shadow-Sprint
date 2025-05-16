@@ -2,7 +2,6 @@ body {
   margin: 0;
   overflow: hidden;
   background: #000;
-  font-family: sans-serif;
 }
 
 canvas {
@@ -12,52 +11,23 @@ canvas {
 }
 
 #ui {
-  position: fixed;
+  position: absolute;
   top: 10px;
   left: 10px;
-  z-index: 10;
   color: white;
-}
-
-#energyBar {
-  width: 150px;
-  height: 15px;
-  background: #444;
-  margin-bottom: 5px;
-  position: relative;
-}
-
-#energyFill {
-  height: 100%;
-  background: limegreen;
-  width: 100%;
-  transition: width 0.2s;
-}
-
-#score {
-  font-size: 18px;
-  margin-bottom: 5px;
-}
-
-#hearts {
-  font-size: 20px;
-  color: red;
+  font-family: sans-serif;
+  z-index: 10;
 }
 
 #gameOver {
-  position: fixed;
+  position: absolute;
   top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
   color: red;
+  font-size: 24px;
   text-align: center;
-  font-size: 32px;
 }
-
-.hidden {
-  display: none;
-}
-
 
 .hidden {
   display: none;
