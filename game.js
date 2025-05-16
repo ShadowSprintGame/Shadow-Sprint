@@ -1,49 +1,83 @@
-
- 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-canvas.width = 400;
-canvas.height = 600;
+canvas.width = 360;
+canvas.height = 640;
 
-const lanes = [100, 200, 300];
-let player = { lane: 1, y: canvas.height - 80, w: 40, h: 40, jumping: false, dy: 0, ducking: false };
+const laneX = [80, 160, 240];
+let player = {
+  lane: 1,
+  y: 500,
+  w: 60,
+  h: 80,
+  jumping: false,
+  dy: 0,
+  bounce: 0
+};
+
+let keys = {};
 let obstacles = [];
 let score = 0;
 let speed = 4;
-let keys = {};
 let blink = false;
 let blinkEnergy = 5;
 let health = 6;
 let gameOver = false;
 
-const heartUI = document.getElementById("hearts");
-const scoreUI = document.getElementById("score");
-const gameOverScreen = document.getElementById("gameOver");
+const playerImg = new Image();
+playerImg.src = "runner.png"; // <- your uploaded image
+
+const obstacleImg = new Image();
+obstacleImg.src = "obstacle.png"; // <- I’ll give you this
+
+const bgImg = new Image();
+bgImg.src = "background.jpg"; // <- I’ll give you this
+
+let bgY = 0;
+
+function updateHearts() {
+  const full = Math.floor(health / 2);
+  const half = health % 2;
+  document.getElementById("hearts").innerText = "❤️".repeat(full) + (half ? "💔" : "");
+}
+
+function drawBackground() {
+  bgY += 2;
+  if (bgY >= canvas.height) bgY = 0;
+  ctx.drawImage(bgImg, 0, bgY - canvas.height, canvas.width, canvas.height);
+  ctx.drawImage(bgImg, 0, bgY, canvas.width, canvas.height);
+}
 
 function drawPlayer() {
-  const x = lanes[player.lane] - player.w / 2;
-  const y = player.y;
-  ctx.fillStyle = "#0f0";
-  ctx.fillRect(x, y, player.w, player.h);
+  const x = laneX[player.lane] - player.w / 2;
+  const y = player.y + Math.sin(player.bounce) * 3;
+  ctx.drawImage(playerImg, x, y, player.w, player.h);
+  player.bounce += 0.3; // animation bounce
 }
 
 function drawObstacles() {
-  ctx.fillStyle = blink ? "#f00" : "#222";
   for (let ob of obstacles) {
-    ctx.fillRect(lanes[ob.lane] - 20, ob.y, 40, 40);
     ob.y += speed;
+    ctx.drawImage(obstacleImg, laneX[ob.lane] - 20, ob.y, 40, 40);
     if (ob.y > canvas.height) ob.y = -200 - Math.random() * 500;
-    if (ob.lane === player.lane && ob.y + 40 >= player.y && ob.y <= player.y + player.h) {
+    if (
+      ob.lane === player.lane &&
+      ob.y + 40 >= player.y &&
+      ob.y < player.y + player.h
+    ) {
       takeDamage();
       ob.y = -200;
     }
   }
 }
 
-function updateHearts() {
-  const full = Math.floor(health / 2);
-  const half = health % 2;
-  heartUI.innerText = "❤️".repeat(full) + (half ? "💔" : "");
+function takeDamage() {
+  if (health > 4) health--;
+  else health -= 2;
+  updateHearts();
+  if (health <= 0) {
+    gameOver = true;
+    document.getElementById("gameOver").classList.remove("hidden");
+  }
 }
 
 function handleInput() {
@@ -59,76 +93,63 @@ function handleInput() {
     player.jumping = true;
     player.dy = -12;
   }
-  if (keys["s"] || keys["arrowdown"]) {
-    player.h = 20;
-  } else {
-    player.h = 40;
-  }
-}
-
-function takeDamage() {
-  if (health > 4) health--;
-  else health -= 2;
-  updateHearts();
-  if (health <= 0) {
-    gameOver = true;
-    gameOverScreen.classList.remove("hidden");
-  }
-}
-
-function blinkEffect() {
-  if (blinkEnergy > 0) {
+  if (keys[" "] && blinkEnergy > 0) {
     blink = true;
     blinkEnergy--;
-    setTimeout(() => blink = false, 300);
+    setTimeout(() => (blink = false), 400);
+    keys[" "] = false;
+  }
+}
+
+function updatePlayer() {
+  if (player.jumping) {
+    player.y += player.dy;
+    player.dy += 0.8;
+    if (player.y >= 500) {
+      player.y = 500;
+      player.jumping = false;
+      player.dy = 0;
+    }
   }
 }
 
 function gameLoop() {
   if (gameOver) return;
 
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+  drawBackground();
   handleInput();
-  if (player.jumping) {
-    player.y += player.dy;
-    player.dy += 0.8;
-    if (player.y >= canvas.height - 80) {
-      player.y = canvas.height - 80;
-      player.jumping = false;
-      player.dy = 0;
-    }
-  }
-
-  drawPlayer();
+  updatePlayer();
   drawObstacles();
+  drawPlayer();
 
   score += 0.1;
-  scoreUI.innerText = "Score: " + Math.floor(score);
-
+  document.getElementById("score").innerText = "Score: " + Math.floor(score);
   requestAnimationFrame(gameLoop);
 }
 
 function restart() {
-  health = 6;
-  updateHearts();
+  player.lane = 1;
+  player.y = 500;
+  player.jumping = false;
   score = 0;
+  health = 6;
+  blink = false;
   blinkEnergy = 5;
   gameOver = false;
-  gameOverScreen.classList.add("hidden");
-  obstacles = Array.from({ length: 5 }, () => ({ lane: Math.floor(Math.random() * 3), y: -100 * Math.random() }));
+  obstacles = Array.from({ length: 5 }, () => ({
+    lane: Math.floor(Math.random() * 3),
+    y: -Math.random() * 600
+  }));
+  updateHearts();
+  document.getElementById("gameOver").classList.add("hidden");
   gameLoop();
 }
 
-// Controls
 document.addEventListener("keydown", e => {
   keys[e.key.toLowerCase()] = true;
-  if (e.key === " ") blinkEffect();
 });
-document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
-canvas.addEventListener("click", blinkEffect);
+document.addEventListener("keyup", e => {
+  keys[e.key.toLowerCase()] = false;
+});
 
-// Init
-updateHearts();
 restart();
