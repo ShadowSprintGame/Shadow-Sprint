@@ -3,12 +3,17 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+// Input focus
+canvas.focus();
+
+// Player and game state
 let player = { x: 100, y: canvas.height - 150, w: 50, h: 50, dy: 0, onGround: true };
 let keys = {}, obstacles = [], score = 0, speed = 5;
 let blinkEnergy = 5, blinkActive = false;
-let health = 6; // 3 hearts (6 halves)
+let health = 6;
 let gameOver = false;
 
+// Constants and DOM refs
 const groundY = canvas.height - 100;
 const scoreUI = document.getElementById("score");
 const heartUI = document.getElementById("hearts");
@@ -61,15 +66,15 @@ function updateHearts() {
 }
 
 function handleInput() {
-  if (keys["w"] || keys["ArrowUp"]) {
+  if (keys["w"] || keys["arrowup"]) {
     if (player.onGround) {
       player.dy = -20;
       player.onGround = false;
     }
   }
-  if (keys["a"] || keys["ArrowLeft"]) player.x -= 5;
-  if (keys["d"] || keys["ArrowRight"]) player.x += 5;
-  if (keys["s"] || keys["ArrowDown"]) player.h = 30;
+  if (keys["a"] || keys["arrowleft"]) player.x -= 5;
+  if (keys["d"] || keys["arrowright"]) player.x += 5;
+  if (keys["s"] || keys["arrowdown"]) player.h = 30;
   else player.h = 50;
 }
 
@@ -120,12 +125,20 @@ function restart() {
   setupGame();
 }
 
-// Controls
-document.addEventListener("keydown", e => {
+// Focus on canvas
+window.onload = () => canvas.focus();
+
+// Keyboard events — attach to canvas
+canvas.addEventListener("keydown", e => {
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
+    e.preventDefault();
+  }
   keys[e.key.toLowerCase()] = true;
   if (e.key === " " || e.key === "Spacebar") blink();
 });
-document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
+canvas.addEventListener("keyup", e => {
+  keys[e.key.toLowerCase()] = false;
+});
 canvas.addEventListener("click", blink);
 
 updateHearts();
