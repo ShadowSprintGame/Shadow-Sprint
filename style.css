@@ -27,18 +27,21 @@ canvas {
   position: relative;
 }
 
-#energyBar::after {
-  content: "";
-  position: absolute;
-  top: 0; left: 0;
+#energyFill {
   height: 100%;
-  width: 100%;
   background: limegreen;
-  transition: width 0.1s;
+  width: 100%;
+  transition: width 0.2s;
 }
 
 #score {
   font-size: 18px;
+  margin-bottom: 5px;
+}
+
+#hearts {
+  font-size: 20px;
+  color: red;
 }
 
 #gameOver {
@@ -50,6 +53,11 @@ canvas {
   text-align: center;
   font-size: 32px;
 }
+
+.hidden {
+  display: none;
+}
+
 
 .hidden {
   display: none;
