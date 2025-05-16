@@ -129,16 +129,18 @@ function restart() {
 window.onload = () => canvas.focus();
 
 // Keyboard events — attach to canvas
-canvas.addEventListener("keydown", e => {
+document.addEventListener("keydown", e => {
   if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
     e.preventDefault();
   }
   keys[e.key.toLowerCase()] = true;
   if (e.key === " " || e.key === "Spacebar") blink();
 });
-canvas.addEventListener("keyup", e => {
+
+document.addEventListener("keyup", e => {
   keys[e.key.toLowerCase()] = false;
 });
+
 canvas.addEventListener("click", blink);
 
 updateHearts();
